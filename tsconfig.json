@@ -1,0 +1,16 @@
+{
+	"compilerOptions": {
+		"allowSyntheticDefaultImports": true,
+		"experimentalDecorators": true,
+		"jsx": "react-jsx",
+		"moduleResolution": "bundler",
+		"paths": {
+			"@/*": ["./src/*"],
+			"millennium": ["./.millennium/lsp/ts"]
+		},
+		"resolveJsonModule": true,
+		"strictNullChecks": false
+	},
+	"exclude": ["./src/backend"],
+	"include": ["./src", "./.millennium/types"]
+}

@@ -1,0 +1,129 @@
+#!/bin/sh -ex
+
+log() {
+	printf '\033[32;0;1m%s\033[m\n' "$1" >&2
+}
+
+git_branch_exists() {
+	git show-ref --verify --quiet "refs/heads/$1"
+}
+
+git_def_branch() {
+	git symbolic-ref --short refs/remotes/origin/HEAD
+}
+
+run_semantic_release() {
+	GH_TOKEN=$(gh auth token) bunx semantic-release \
+		--no-ci \
+		--plugins '
+			@semantic-release/commit-analyzer,
+			@semantic-release/release-notes-generator,
+			@semantic-release/github
+		' \
+		"$@"
+}
+
+cleanup() {
+	rm -rf "$tmpdir"
+}
+
+release() {
+	while IFS= read -r line; do case $line in
+		*'The next release version'*)
+			next=${line##*is }
+			break
+		;;
+
+		*'There are no relevant changes'*)
+			log 'nothing to release!'
+			exit 1
+		;;
+	esac; done <<-EOF
+	$(run_semantic_release --dry-run)
+	EOF
+
+	if [ -z "$next" ]; then
+		is_first_run=1
+		next=1.0.0
+	fi
+	# todo
+	commit_msg="chore(release): ${next:=1.0.0}"
+
+	sed -i "s/version = .*/version = \"$next\"/" "$CONFIG_FILE"
+	git add "$CONFIG_FILE"
+	git commit -m "$commit_msg"
+	run_semantic_release
+	git push
+
+	log 'released!'
+}
+
+open_pr() {
+	db_fork_dir="$TMPDIR/plugindb"
+	db_repo=SteamClientHomebrew/PluginDatabase
+	gh repo fork "https://github.com/$db_repo" --clone -- "$db_fork_dir"
+	cd "$db_fork_dir"
+
+	src_branch=$(git_def_branch)
+	src_branch=${src_branch##*/}
+	src_url=$(git remote get-url origin)
+	src_name=${src_url##*/}
+	submodule_path=plugins/$src_name
+	submodule_path=$src_name
+	if git config -f .gitmodules --get "submodule.plugins/$src_name" >/dev/null; then
+		git submodule update --init "$submodule_path"
+		git -C "$submodule_path" fetch origin "$src_branch"
+	else
+		git submodule add -b "$src_branch" "$src_url" "$submodule_path"
+	fi
+
+	target_sha=$(git -C "$submodule_path" rev-parse "$tag")
+	pr_branch="$src_name/v$next"
+	git switch --create "$pr_branch"
+	git -C "$submodule_path" checkout --detach "$target_sha"
+	git add "$submodule_path"
+	if git diff --cached --quiet "$submodule_path"; then
+		log 'submodule is already the latest commit'
+		return
+	fi
+
+	while IFS=' =' read -r k v; do
+		case $k in name)
+			k=${k#\"}
+			plugin_name=${k%\"}
+			break
+		esac
+	done < "$CONFIG_FILE"
+	if [ "$is_first_run" ]; then
+		pr_template=pull_request_template
+		pr_title="Add $plugin_name"
+	else
+		pr_template=PULL_REQUEST_TEMPLATE/PLUGIN-UPDATE
+		pr_title="Update $plugin_name to $next"
+	fi
+
+	db_branch=$(git_def_branch -C "$submodule_path")
+	git commit -m "$pr_title"
+	git push -u origin "$pr_branch"
+	#gh pr create \
+	#	--repo "https://github.com/$db_repo" \
+	#	--base "$db_branch" \
+	#	--head "$pr_branch" \
+	#	--title "$pr_title" \
+	#	--body "$(curl "https://raw.githubusercontent.com/SteamClientHomebrew/PluginDatabase/refs/heads/$db_branch/.github/$pr_template")"
+
+	log 'update PR opened!'
+}
+
+main() {
+	: "${TMPDIR:=/tmp}"
+	CONFIG_FILE=millennium.toml
+
+	tmpdir=$(mktemp -d "$TMPDIR/submodule-pr.XXXXXX")
+	trap cleanup 0 HUP INT TERM
+
+	release
+	open_pr
+}
+
+main "$@"

@@ -1,0 +1,4 @@
+#!/bin/sh
+printf '%s\n' "$0"
+cd -P -- "${0%/*}"
+printf '%s\n' "$0"

@@ -1,4 +1,4 @@
 #!/bin/sh
-printf '%s\n' "$0"
+printf '%s\n' "$PWD"
 cd -P -- "${0%/*}"
-printf '%s\n' "$0"
+printf '%s\n' "$PWD"

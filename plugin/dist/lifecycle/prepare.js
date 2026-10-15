@@ -1,0 +1,10 @@
+import { openDatabasePr } from "../config/open-database-pr";
+import { DEFAULT_CONFIG, MILLENNIUM_CONFIG_FILE, millenniumConfig, } from "../shared";
+export async function prepare(config = DEFAULT_CONFIG, ctx) {
+    const { version, notes } = ctx.nextRelease;
+    await millenniumConfig.edit("plugin", "version", version);
+    ctx.logger.log(`Updated ${MILLENNIUM_CONFIG_FILE} to ${version}`);
+    if (config.openDatabasePr) {
+        openDatabasePr(ctx, notes);
+    }
+}

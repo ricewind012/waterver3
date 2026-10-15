@@ -6,7 +6,7 @@ export default {
 		"@semantic-release/commit-analyzer",
 		"@semantic-release/release-notes-generator",
 		"@semantic-release/npm",
-		"./plugin/src/index.ts",
+		"@ricewind012/semantic-release-millennium",
 		[
 			"@semantic-release/git",
 			{ assets: ["millennium.toml", "package.json", "package-lock.json"] },

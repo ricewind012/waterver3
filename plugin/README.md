@@ -28,7 +28,7 @@ export default {
 
 The [@semantic-release/commit-analyzer][sr-commit-analyzer] and [@semantic-release/release-notes-generator][sr-release-notes-generator] plugins need to go _before_ this plugin in order to get the changelog for the PR template.
 
-The [@semantic-release/git][sr-git] plugin has to go _after_ this plugin in order to update the version in `millennium.toml`.
+The [@semantic-release/git][sr-git] plugin has to go _after_ this plugin in order to bump the version in `millennium.toml`.
 
 ### CI
 

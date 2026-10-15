@@ -19,8 +19,8 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
 
-      #- name: Install
-      #  run: bun i
+      - name: Install
+        run: bun i
 
       #- name: Test
       #  run: bun test
@@ -29,4 +29,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: bun x -p @semantic-release/exec -p @semantic-release/git semantic-release
+        run: bun x semantic-release

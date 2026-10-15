@@ -1,6 +1,7 @@
 {
 	"name": "@ricewind012/semantic-release-millennium",
 	"version": "1.0.0",
+	"main": "./src/index.ts",
 	"type": "module",
 	"dependencies": {
 		"@semantic-release/error": "^4.0.0",

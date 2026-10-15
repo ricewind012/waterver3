@@ -25,7 +25,7 @@ export async function openDatabasePr(ctx: PrepareContext, changelog: string) {
 	const branch = ctx.branch.name;
 	const { gitTag, version } = ctx.nextRelease;
 
-	const { stdout: login } = await runGhCli("api", "user", "--jq", ".login");
+	const [login, repoName] = new URL(repositoryUrl).pathname.slice(1).split("/");
 	const { stdout: databaseBranch } = await runGhCli(
 		"api",
 		`repos/${DB_REPO}`,
@@ -68,7 +68,6 @@ export async function openDatabasePr(ctx: PrepareContext, changelog: string) {
 	await run("git", ["fetch", "upstream", databaseBranch], {
 		cwd: tmpDir,
 	});
-	const repoName = new URL(repositoryUrl).pathname.slice(1);
 	const prBranch = `${repoName}/v${version}`;
 	await run("git", ["switch", "--create", prBranch, "FETCH_HEAD"], {
 		cwd: tmpDir,

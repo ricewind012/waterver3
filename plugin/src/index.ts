@@ -7,4 +7,5 @@ export { fail, prepare, success, verifyConditions };
 
 export function publish(config: any, ctx: any) {
 	console.log("publish", { config });
+	console.log("token", process.env.GITHUB_TOKEN);
 }

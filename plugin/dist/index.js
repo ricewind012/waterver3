@@ -5,4 +5,5 @@ import { verifyConditions } from "./lifecycle/verify-conditions.js";
 export { fail, prepare, success, verifyConditions };
 export function publish(config, ctx) {
     console.log("publish", { config });
+    console.log("token", process.env.GITHUB_TOKEN);
 }

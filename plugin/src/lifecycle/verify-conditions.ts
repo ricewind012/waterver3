@@ -12,6 +12,6 @@ export async function verifyConditions(
 		throw new SemanticReleaseError(`${MILLENNIUM_CONFIG_FILE} was not found`);
 	}
 
-	await runGhCli("api", "user", "--jq", ".login");
+	await runGhCli("api");
 	ctx.logger.log("GitHub CLI authentication verified");
 }

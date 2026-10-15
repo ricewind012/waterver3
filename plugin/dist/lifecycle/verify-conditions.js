@@ -5,6 +5,6 @@ export async function verifyConditions(_config = DEFAULT_CONFIG, ctx) {
     if (!existsSync(MILLENNIUM_CONFIG_FILE)) {
         throw new SemanticReleaseError(`${MILLENNIUM_CONFIG_FILE} was not found`);
     }
-    await runGhCli("api", "user", "--jq", ".login");
+    await runGhCli("api");
     ctx.logger.log("GitHub CLI authentication verified");
 }

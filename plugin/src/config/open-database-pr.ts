@@ -24,11 +24,6 @@ export async function openDatabasePr(ctx: PrepareContext, changelog: string) {
 	const { repositoryUrl } = ctx.options;
 	const branch = ctx.branch.name;
 	const { gitTag, version } = ctx.nextRelease;
-	if (!repositoryUrl || !branch || !version || !gitTag) {
-		error(
-			"semantic-release did not provide the repository, branch, version, or git tag",
-		);
-	}
 
 	const { stdout: login } = await runGhCli("api", "user", "--jq", ".login");
 	const { stdout: databaseBranch } = await runGhCli(
@@ -161,7 +156,6 @@ export async function openDatabasePr(ctx: PrepareContext, changelog: string) {
 		.replace("REPLACE_WITH_UPDATE_SUMMARY", changelog);
 
 	if (errors.length > 0) {
-		await cleanup();
 		throw new AggregateError(errors);
 	}
 

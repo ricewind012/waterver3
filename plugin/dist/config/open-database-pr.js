@@ -1,5 +1,5 @@
 import SemanticReleaseError from "@semantic-release/error";
-import { cleanup, millenniumConfig, run, runGhCli, tmpDir, tokenEnvironment, } from "../shared";
+import { cleanup, millenniumConfig, run, runGhCli, tmpDir, tokenEnvironment, } from "../shared.js";
 import { join } from "node:path";
 const DB_REPO = "SteamClientHomebrew/PluginDatabase";
 const env = tokenEnvironment;

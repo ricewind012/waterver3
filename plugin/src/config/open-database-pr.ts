@@ -8,7 +8,7 @@ import {
 	runGhCli,
 	tmpDir,
 	tokenEnvironment,
-} from "../shared.ts";
+} from "../shared.js";
 import { join } from "node:path";
 
 const DB_REPO = "SteamClientHomebrew/PluginDatabase";

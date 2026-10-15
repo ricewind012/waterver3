@@ -1,5 +1,5 @@
 import SemanticReleaseError from "@semantic-release/error";
-import { DEFAULT_CONFIG, MILLENNIUM_CONFIG_FILE, runGhCli } from "../shared";
+import { DEFAULT_CONFIG, MILLENNIUM_CONFIG_FILE, runGhCli } from "../shared.js";
 import { existsSync } from "node:fs";
 export async function verifyConditions(_config = DEFAULT_CONFIG, ctx) {
     if (!existsSync(MILLENNIUM_CONFIG_FILE)) {

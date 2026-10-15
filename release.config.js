@@ -6,7 +6,7 @@ export default {
 		"@semantic-release/commit-analyzer",
 		"@semantic-release/release-notes-generator",
 		"@semantic-release/npm",
-		"./plugin/dist/index.ts",
+		"./plugin/dist/index.js",
 		[
 			"@semantic-release/git",
 			{ assets: ["millennium.toml", "package.json", "package-lock.json"] },

@@ -25,6 +25,9 @@ jobs:
       #- name: Test
       #  run: bun test
 
+      - name: Install semantic-release plugins
+        run: bun i @semantic-release/exec @semantic-release/git
+
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

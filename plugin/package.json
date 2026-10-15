@@ -1,8 +1,11 @@
 {
 	"name": "@ricewind012/semantic-release-millennium",
 	"version": "1.0.0",
-	"main": "./src/index.ts",
+	"main": "./dist/index.js",
 	"type": "module",
+	"scripts": {
+		"build": "tsc"
+	},
 	"dependencies": {
 		"@semantic-release/error": "^4.0.0",
 		"smol-toml": "^1.9.1"

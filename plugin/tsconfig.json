@@ -2,6 +2,7 @@
 	"compilerOptions": {
 		"allowImportingTsExtensions": true,
 		"noEmit": true,
+		"outDir": "./dist",
 		"strictNullChecks": false,
 		"types": ["node"]
 	},

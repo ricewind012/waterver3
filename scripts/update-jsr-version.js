@@ -1,5 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 
+process.exit();
+
 const [version] = process.argv.slice(2);
 if (!version) {
 	throw new Error("A release version is required.");

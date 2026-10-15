@@ -19,8 +19,8 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
 
-      - name: Install
-        run: bun i
+      #- name: Install
+      #  run: bun i
 
       #- name: Test
       #  run: bun test

@@ -1,4 +1,4 @@
-/** biome-ignore-all lint/suspicious/noTemplateCurlyInString: NOPE */
+/** biome-ignore-all lint/suspicious/noTemplateCurlyInString: semantic-release */
 
 /** @type {import("semantic-release").GlobalConfig} */
 export default {
@@ -17,7 +17,7 @@ export default {
 			"@semantic-release/git",
 			{
 				assets: ["package.json", "jsr.json"],
-				message: "chore(release): ${nextRelease.version} [skip ci]",
+				message: "chore(release): ${nextRelease.version}",
 			},
 		],
 		"@semantic-release/github",

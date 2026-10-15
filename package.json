@@ -8,16 +8,11 @@
 		"dev": "starlight"
 	},
 	"dependencies": {
-		"@sebbo2002/semantic-release-jsr": "^4.0.2",
 		"@steambrew/starlight": "^1.1.6",
 		"@types/react": "19.1.1",
 		"@types/react-dom": "19.1.1"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "^2.4.15",
-		"@semantic-release/exec": "^7.1.0",
-		"@semantic-release/git": "^11.0.1",
-		"@semantic-release/npm": "^13.2.0",
-		"semantic-release": "^25.0.3"
+		"@biomejs/biome": "^2.4.15"
 	}
 }

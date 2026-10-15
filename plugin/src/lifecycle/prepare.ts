@@ -1,18 +1,18 @@
-import { readFile, writeFile } from "node:fs/promises";
+import type { PrepareContext } from "semantic-release";
 
-import type path from "node:path";
+import { openDatabasePr } from "../config/open-database-pr";
+import {
+	DEFAULT_CONFIG,
+	MILLENNIUM_CONFIG_FILE,
+	millenniumConfig,
+} from "../shared";
 
-import { updatePluginMetadata } from ".";
+export async function prepare(config = DEFAULT_CONFIG, ctx: PrepareContext) {
+	const { version, notes } = ctx.nextRelease;
+	await millenniumConfig.edit("plugin", "version", version);
+	ctx.logger.log(`Updated ${MILLENNIUM_CONFIG_FILE} to ${version}`);
 
-
-export async function prepare(_pluginConfig, context) {
-	const version = context.nextRelease?.version;
-	if (!version) {
-		throw new Error("semantic-release did not provide a next release version.");
+	if (config.openDatabasePr) {
+		openDatabasePr(ctx, notes);
 	}
-
-	const configPath = path.join(context.cwd, "millennium.toml");
-	const contents = await readFile(configPath, "utf8");
-	await writeFile(configPath, updatePluginMetadata(contents, version));
-	context.logger.log(`Updated millennium.toml to ${version}.`);
 }

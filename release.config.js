@@ -9,9 +9,7 @@ export default {
 		"./plugin/src/index.ts",
 		[
 			"@semantic-release/git",
-			{
-				assets: ["millennium.toml", "package.json", "package-lock.json"],
-			},
+			{ assets: ["millennium.toml", "package.json", "package-lock.json"] },
 		],
 		"@semantic-release/github",
 	],

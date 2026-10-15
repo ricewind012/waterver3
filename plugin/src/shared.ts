@@ -1,21 +1,95 @@
-import { execFile } from "node:child_process";
-import { readFile } from "node:fs/promises";
+import { TomlFile } from "./toml";
+import { type ExecException, execFile } from "node:child_process";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { promisify } from "node:util";
 
-export const DB_REPO = "SteamClientHomebrew/PluginDatabase";
+export const DEFAULT_CONFIG: PluginConfig = {
+	openDatabasePr: false,
+};
+export const MILLENNIUM_CONFIG_FILE = "millennium.toml";
 
 const execFileAsync = promisify(execFile);
 
-interface Options {
+/** @see https://docs.steambrew.app/plugins/structure/config */
+interface MillenniumPluginConfig {
+	assets?: {
+		resources: string[];
+	};
+	backend?: {
+		entry: string;
+		sources: string[];
+	};
+	compiler?: {
+		output_path: string;
+	};
+	dev?: {
+		plugin_name?: string;
+		socket?: string;
+		auto_restart?: boolean;
+		reload_steamui_when?: "never" | "backend" | "frontend" | "both";
+	};
+	frontend: {
+		entry: string;
+		globals?: Record<string, string>;
+	};
+	inspect?: {
+		depth?: number;
+		colors?: boolean;
+		show_hidden?: boolean;
+	};
+	logger?: {
+		padding?: number;
+		backend_prefix?: string;
+		frontend_prefix?: string;
+		webview_prefix?: string;
+		webview_col?: [number, number, number];
+		backend_col?: [number, number, number];
+		frontend_col?: [number, number, number];
+	};
+	patches?: {
+		debug: boolean;
+	};
+	plugin: {
+		author: string;
+		description: string;
+		id: string;
+		name: string;
+		version: string;
+	};
+	webkit?: {
+		entry: string;
+		globals?: Record<string, string>;
+	};
+}
+
+interface PluginConfig {
+	/**
+	 * Open a PR to the Millennium plugin database?
+	 */
+	openDatabasePr: boolean;
+}
+
+interface RunOptions {
 	cwd: string;
 	env: Record<string, string>;
 	allowedExitCodes: number[];
 }
 
+export const millenniumConfig = new TomlFile<MillenniumPluginConfig>(
+	MILLENNIUM_CONFIG_FILE,
+);
+export const tmpDir = await mkdtemp(join(tmpdir(), "plugin-database-"));
+
+export async function cleanup() {
+	await rm(tmpDir, { force: true, recursive: true });
+}
+
 export async function run(
 	command: string,
 	args: readonly string[],
-	options: Partial<Options> = {},
+	options: Partial<RunOptions> = {},
 ) {
 	try {
 		const { stdout } = await execFileAsync(command, args, {
@@ -26,75 +100,30 @@ export async function run(
 				...options.env,
 			},
 		});
-		return { code: 0, stdout: stdout.trim() };
-	} catch (error) {
-		if (options.allowedExitCodes?.includes(error.code)) {
-			return { code: error.code, stdout: (error.stdout || "").trim() };
+		return { code: 0, stdout };
+	} catch (ex) {
+		const error = ex as ExecException;
+		const code = Number(error.code);
+		if (options.allowedExitCodes?.includes(code)) {
+			return { code, stdout: error.stdout?.toString() };
 		}
 
-		const details = error.stderr?.trim() || error.message;
-		throw new Error(`${command} failed: ${details}`, { cause: error });
+		const details = error.stderr?.toString() || error.message;
+		throw new Error(`${command} ${args.join(" ")} failed: ${details}`);
 	}
 }
 
-function getPluginSection(contents: string) {
-	const sectionStart = contents.search(/^\[plugin\]\s*$/m);
-	if (sectionStart === -1) {
-		throw new Error("millennium.toml is missing its [plugin] section.");
-	}
-
-	const nextSection = contents.indexOf("\n[", sectionStart);
-	return {
-		end: nextSection === -1 ? contents.length : nextSection + 1,
-		start: sectionStart,
-	};
-}
-
-export function updatePluginMetadata(contents: string, version: string) {
-	const { start, end } = getPluginSection(contents);
-	const section = contents.slice(start, end);
-	const versionLine = /^version\s*=\s*"[^"]*"\s*$/gm;
-	const matches = [...section.matchAll(versionLine)];
-	if (matches.length !== 1) {
-		throw new Error(
-			"millennium.toml [plugin] section must contain one version field.",
-		);
-	}
-
-	const updatedSection = section.replace(versionLine, `version = "${version}"`);
-	return `${contents.slice(0, start)}${updatedSection}${contents.slice(end)}`;
-}
-
-export function repositoryName(repositoryUrl: string) {
-	const match = repositoryUrl.match(/[:/]([^/:]+?)(?:\.git)?$/);
-	if (!match) {
-		throw new Error(
-			`Cannot determine the repository name from ${repositoryUrl}.`,
-		);
-	}
-	return match[1];
-}
-
-export async function readPluginMetadata(filePath: string) {
-	const contents = await readFile(filePath, "utf8");
-	const { start, end } = getPluginSection(contents);
-	const section = contents.slice(start, end);
-	const name = section.match(/^name\s*=\s*"([^"]+)"\s*$/m)?.[1];
-	const id = section.match(/^id\s*=\s*"([^"]+)"\s*$/m)?.[1];
-	if (!name || !id) {
-		throw new Error(
-			"millennium.toml [plugin] section must contain name and id fields.",
-		);
-	}
-	return { id, name };
-}
-
-export function tokenEnvironment() {
+export const tokenEnvironment = (() => {
 	const token = process.env.GH_TOKEN;
 	if (!token) {
 		throw new Error(
 			"GH_TOKEN is required to fork the PluginDatabase and open its update PR.",
 		);
 	}
+
 	return { GH_TOKEN: token };
+})();
+
+export function runGhCli(...args: readonly string[]) {
+	return run("gh", args); //{ env: tokenEnvironment });
 }

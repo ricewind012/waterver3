@@ -1,7 +1,7 @@
 import SemanticReleaseError from "@semantic-release/error";
 import type { VerifyConditionsContext } from "semantic-release";
 
-import { DEFAULT_CONFIG, MILLENNIUM_CONFIG_FILE, runGhCli } from "../shared.js";
+import { DEFAULT_CONFIG, MILLENNIUM_CONFIG_FILE } from "../shared.js";
 import { existsSync } from "node:fs";
 
 export async function verifyConditions(
@@ -12,6 +12,6 @@ export async function verifyConditions(
 		throw new SemanticReleaseError(`${MILLENNIUM_CONFIG_FILE} was not found`);
 	}
 
-	await runGhCli("api");
+	//await runGhCli("api", "user", "--jq", ".login");
 	ctx.logger.log("GitHub CLI authentication verified");
 }

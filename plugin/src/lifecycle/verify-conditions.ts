@@ -1,7 +1,7 @@
 import SemanticReleaseError from "@semantic-release/error";
 import type { VerifyConditionsContext } from "semantic-release";
 
-import { DEFAULT_CONFIG, MILLENNIUM_CONFIG_FILE, runGhCli } from "../shared";
+import { DEFAULT_CONFIG, MILLENNIUM_CONFIG_FILE, runGhCli } from "../shared.ts";
 import { existsSync } from "node:fs";
 
 export async function verifyConditions(

@@ -1,7 +1,7 @@
-import { fail } from "./lifecycle/fail.js";
-import { prepare } from "./lifecycle/prepare.js";
-import { success } from "./lifecycle/success.js";
-import { verifyConditions } from "./lifecycle/verify-conditions.js";
+import { fail } from "./lifecycle/fail.ts";
+import { prepare } from "./lifecycle/prepare.ts";
+import { success } from "./lifecycle/success.ts";
+import { verifyConditions } from "./lifecycle/verify-conditions.ts";
 
 export { fail, prepare, success, verifyConditions };
 

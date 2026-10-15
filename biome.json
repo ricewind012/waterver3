@@ -20,7 +20,7 @@
 		}
 	},
 	"files": {
-		"includes": ["**", "!.millennium", "!package.json"]
+		"includes": ["**", "!.millennium", "!**/package.json"]
 	},
 	"linter": {
 		"domains": {

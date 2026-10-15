@@ -8,6 +8,10 @@ The plugin adds each enabled essential as a child in certain Steam elements with
 
 Each enabled essential is also added as a space-separated string in the `data-loaded-essentials` attribute to the `<html>` element. Note that if it errored but is enabled, it does not get added.
 
+## Releasing
+
+Releases are managed by semantic-release. A release updates the version in `millennium.toml`, publishes a GitHub release, and opens a pull request to update this plugin in the SteamClientHomebrew PluginDatabase. The release workflow requires a `GH_TOKEN` secret with permission to create a PluginDatabase fork, push to it, and open a pull request.
+
 ## Localization
 
 You can translate this plugin to your own language by translating [this file](locales/english.json). See [here](https://partner.steamgames.com/doc/store/localization/languages#supported_languages) in "API language code" on how to name the translated file.

@@ -1,4 +1,4 @@
-/** biome-ignore-all lint/suspicious/noTemplateCurlyInString: semantic-release */
+/** biome-ignore-all lint/suspicious/noTemplateCurlyInString: Lodash template */
 
 /** @type {import("semantic-release").GlobalConfig} */
 export default {
@@ -6,14 +6,13 @@ export default {
 		"@semantic-release/commit-analyzer",
 		"@semantic-release/release-notes-generator",
 		"@semantic-release/npm",
+		"./plugin/src/index.ts",
 		[
 			"@semantic-release/git",
 			{
-				assets: ["millennium.toml"],
-				message: "chore(release): ${nextRelease.version} [skip ci]",
+				assets: ["millennium.toml", "package.json", "package-lock.json"],
 			},
 		],
 		"@semantic-release/github",
-		"./plugin/src/index.ts",
 	],
 };

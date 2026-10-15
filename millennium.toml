@@ -3,14 +3,14 @@ author = "ricewind"
 description = "Additional elements for themes"
 id = "steam-theme-essentials"
 name = "Theme Essentials"
-version = "1.0.0"
+version = "1.6.0"
 
 [assets]
-resources = ["locales"]
+resources = [ "locales" ]
 
 [backend]
 entry = "src/backend/main.lua"
-sources = ["src/backend/**/*.lua"]
+sources = [ "src/backend/**/*.lua" ]
 
 [frontend]
 entry = "src/index.tsx"

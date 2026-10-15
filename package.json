@@ -1,6 +1,6 @@
 {
 	"name": "steam-theme-essentials",
-	"version": "1.1.0",
+	"version": "1.2.0",
 	"private": true,
 	"type": "module",
 	"scripts": {
@@ -8,6 +8,8 @@
 		"dev": "starlight"
 	},
 	"dependencies": {
+		"@semantic-release/exec": "^7.1.0",
+		"@semantic-release/git": "^11.0.1",
 		"@steambrew/starlight": "^1.1.6",
 		"@types/react": "19.1.1",
 		"@types/react-dom": "19.1.1"

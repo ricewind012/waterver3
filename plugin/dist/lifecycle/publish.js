@@ -21,7 +21,7 @@ export async function publish(config = DEFAULT_CONFIG, ctx) {
         throw new SemanticReleaseError(`semantic-release did not pass one of: ${obj}`);
     }
     const [login, repoName] = new URL(repositoryUrl).pathname.slice(1).split("/");
-    const forkedRepo = `${login}/${DB_REPO.split("/")[1]}`;
+    const forkedRepo = `https://github.com/${login}/${DB_REPO.split("/")[1]}`;
     console.log({ forkedRepo, login, repoName });
     if (await repoExists(forkedRepo)) {
         await run("git", ["clone", forkedRepo, tmpDir]);

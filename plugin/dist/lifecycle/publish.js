@@ -1,8 +1,14 @@
 import SemanticReleaseError from "@semantic-release/error";
-import { cleanup, DEFAULT_CONFIG, millenniumConfig, run, runGhCli, tmpDir, tokenEnvironment, } from "../shared.js";
+import { cleanup, DEFAULT_CONFIG, millenniumConfig, run, runGhCli, tmpDir, } from "../shared.js";
 import { join } from "node:path";
 const DB_REPO = "SteamClientHomebrew/PluginDatabase";
-const env = tokenEnvironment;
+export const env = (() => {
+    const token = process.env.GH_TOKEN;
+    if (!token) {
+        throw new Error("GH_TOKEN is required to fork the PluginDatabase and open its update PR.");
+    }
+    return { GH_TOKEN: token };
+})();
 export async function publish(config = DEFAULT_CONFIG, ctx) {
     if (!config.openDatabasePr) {
         return;

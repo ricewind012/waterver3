@@ -8,13 +8,21 @@ import {
 	run,
 	runGhCli,
 	tmpDir,
-	tokenEnvironment,
 } from "../shared.js";
 import { join } from "node:path";
 
 const DB_REPO = "SteamClientHomebrew/PluginDatabase";
 
-const env = tokenEnvironment;
+export const env = (() => {
+	const token = process.env.GH_TOKEN;
+	if (!token) {
+		throw new Error(
+			"GH_TOKEN is required to fork the PluginDatabase and open its update PR.",
+		);
+	}
+
+	return { GH_TOKEN: token };
+})();
 
 export async function publish(config = DEFAULT_CONFIG, ctx: PublishContext) {
 	if (!config.openDatabasePr) {

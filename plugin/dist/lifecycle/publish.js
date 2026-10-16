@@ -109,8 +109,8 @@ export async function publish(config = DEFAULT_CONFIG, ctx) {
         ".content",
     );
     */
-    console.log(`https://raw.githubusercontent.com/${DB_REPO}/refs/heads/${branch}/.github/${templatePath}.md`, "https://raw.githubusercontent.com/SteamClientHomebrew/PluginDatabase/refs/heads/main/.github/pull_request_template.md", { firstRelease, prBranch, title });
-    const fetched = await fetch(`https://raw.githubusercontent.com/${DB_REPO}/refs/heads/${branch}/.github/${templatePath}.md`);
+    //const {stdout:dbBranch}=await run('git', ['symbolic-ref', '--short', 'refs/remotes/origin/HEAD'])
+    const fetched = await fetch(`https://raw.githubusercontent.com/${DB_REPO}/refs/heads/${databaseBranch}/.github/${templatePath}.md`);
     if (!fetched.ok) {
         throw new SemanticReleaseError(`Template URL returned ${fetched.status}: ${fetched.statusText}`);
     }

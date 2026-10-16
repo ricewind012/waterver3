@@ -14,7 +14,7 @@
 		}
 	},
 	"files": {
-		"includes": ["**", "!.millennium", "!**/package.json"]
+		"includes": ["**", "!.millennium"]
 	},
 	"linter": {
 		"domains": {
@@ -48,5 +48,18 @@
 				}
 			}
 		}
-	}
+	},
+	"overrides": [
+		{
+			"assist": {
+				"actions": {
+					"source": {
+						"useSortedKeys": "off",
+						"useSortedPackageJson": "on"
+					}
+				}
+			},
+			"includes": ["**/package.json"]
+		}
+	]
 }

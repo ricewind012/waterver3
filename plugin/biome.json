@@ -13,7 +13,17 @@
 			}
 		}
 	},
-	"files": {
-		"includes": ["**", "!package.json"]
-	}
+	"overrides": [
+		{
+			"assist": {
+				"actions": {
+					"source": {
+						"useSortedKeys": "off",
+						"useSortedPackageJson": "on"
+					}
+				}
+			},
+			"includes": ["**/package.json"]
+		}
+	]
 }

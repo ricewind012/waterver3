@@ -6,7 +6,7 @@ export default {
 		"@semantic-release/commit-analyzer",
 		"@semantic-release/release-notes-generator",
 		"@semantic-release/npm",
-		"@ricewind012/semantic-release-millennium",
+		["@ricewind012/semantic-release-millennium", { openDatabasePr: true }],
 		[
 			"@semantic-release/git",
 			{ assets: ["millennium.toml", "package.json", "package-lock.json"] },

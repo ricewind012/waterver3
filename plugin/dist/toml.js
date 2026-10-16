@@ -1,8 +1,11 @@
 import { parse, stringify } from "smol-toml";
 import { readFile, writeFile } from "node:fs/promises";
+/**
+ * Small wrapper for `smol-toml`.
+ */
 // biome-ignore lint/suspicious/noExplicitAny: TomlValue doesn't work :(
 export class TomlFile {
-    content;
+    content = {};
     file;
     constructor(file) {
         this.file = file;

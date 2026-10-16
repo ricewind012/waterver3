@@ -2,8 +2,8 @@
 	"compilerOptions": {
 		"outDir": "./dist",
 		"rootDir": "./src",
+		// signale has no types
 		"skipLibCheck": true,
-		"strictNullChecks": false,
 		"types": ["node"]
 	},
 	"include": ["./src"]

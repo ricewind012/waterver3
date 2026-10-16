@@ -17,7 +17,6 @@ export async function cleanup() {
 export async function run(command, args, options = {}) {
     try {
         const { stdout } = await execFileAsync(command, args, {
-            cwd: options.cwd,
             encoding: "utf8",
             env: {
                 ...process.env,
@@ -30,7 +29,7 @@ export async function run(command, args, options = {}) {
         const error = ex;
         const code = Number(error.code);
         if (options.allowedExitCodes?.includes(code)) {
-            return { code, stdout: error.stdout?.toString() };
+            return { code, stdout: error.stdout?.toString() || error.message };
         }
         const details = error.stderr?.toString() || error.message;
         throw new Error(`${command} ${args.join(" ")} failed: ${details}`);
@@ -45,7 +44,7 @@ export const tokenEnvironment = (() => {
         );
     }
         */
-    return { GH_TOKEN: token };
+    return { GH_TOKEN: token ?? "" };
 })();
 export function runGhCli(...args) {
     return run("gh", args); //{ env: tokenEnvironment });

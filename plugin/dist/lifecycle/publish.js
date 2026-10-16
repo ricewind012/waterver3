@@ -22,7 +22,6 @@ export async function publish(config = DEFAULT_CONFIG, ctx) {
     }
     const [login, repoName] = new URL(repositoryUrl).pathname.slice(1).split("/");
     const forkedRepo = `https://github.com/${login}/${DB_REPO.split("/")[1]}`;
-    console.log({ forkedRepo, login, repoName });
     if (await repoExists(forkedRepo)) {
         await run("git", ["clone", forkedRepo, tmpDir]);
     }
@@ -45,7 +44,7 @@ export async function publish(config = DEFAULT_CONFIG, ctx) {
     ]);
     const { stdout: databaseBranch } = await runGhCli("api", `repos/${DB_REPO}`, "--jq", ".default_branch");
     const upstreamRemote = await run("git", ["remote", "get-url", "upstream"], {
-        // Git returns 2 when there's no "upstream" remote
+        // returns 2 when there's no "upstream" remote
         allowedExitCodes: [2],
     });
     const remoteGitCmd = upstreamRemote.code === 0 ? "set-url" : "add";
@@ -54,6 +53,8 @@ export async function publish(config = DEFAULT_CONFIG, ctx) {
     await run("git", ["fetch", "upstream", databaseBranch]);
     const prBranch = `${repoName}/v${version}`;
     await run("git", ["switch", "--create", prBranch, "FETCH_HEAD"]);
+    console.log({ login, repoName });
+    console.log({ prBranch });
     const { plugin } = millenniumConfig.content;
     const submodulePath = join("plugins", plugin.id);
     const gitmodulesPath = join(tmpDir, ".gitmodules");
@@ -64,7 +65,7 @@ export async function publish(config = DEFAULT_CONFIG, ctx) {
         "--get-regexp",
         "^submodule\\..*\\.path$",
     ], 
-    // Git returns 1 when no submodule path matches
+    // returns 1 when no submodule path matches
     { allowedExitCodes: [1] });
     const hasSubmodule = submodules.stdout
         .split("\n")
@@ -89,7 +90,7 @@ export async function publish(config = DEFAULT_CONFIG, ctx) {
     ]);
     await run("git", ["add", "--", ".gitmodules", submodulePath]);
     const diff = await run("git", ["diff", "--cached", "--quiet", "--", ".gitmodules", submodulePath], 
-    // Git returns 1 when there are not staged changes
+    // returns 1 when there are not staged changes
     { allowedExitCodes: [1] });
     if (diff.code === 0) {
         ctx.logger.log("PluginDatabase already references this release");

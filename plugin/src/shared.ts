@@ -50,15 +50,15 @@ export async function run(
 ) {
 	try {
 		const { stdout } = await execFileAsync(command, args, { encoding: "utf8" });
-		return { code: 0, stdout };
+		return { code: 0, stdout: stdout.trim() };
 	} catch (ex) {
 		const error = ex as ExecException;
 		const code = Number(error.code);
 		if (options.allowedExitCodes?.includes(code)) {
-			return { code, stdout: error.stdout?.toString() || error.message };
+			return { code, stdout: error.stdout?.toString().trim() || error.message };
 		}
 
-		const details = error.stderr?.toString() || error.message;
+		const details = error.stderr?.toString().trim() || error.message;
 		throw new Error(`${command} ${args.join(" ")} failed: ${details}`);
 	}
 }

@@ -75,8 +75,6 @@ export async function publish(config = DEFAULT_CONFIG, ctx: PublishContext) {
 	await run("git", ["fetch", "upstream", databaseBranch]);
 	const prBranch = `${repoName}/v${version}`;
 	await run("git", ["switch", "--create", prBranch, "FETCH_HEAD"]);
-	console.log({ login, repoName });
-	console.log({ prBranch });
 
 	const { plugin } = millenniumConfig.content;
 	const submodulePath = join("plugins", plugin.id);
@@ -146,8 +144,14 @@ export async function publish(config = DEFAULT_CONFIG, ctx: PublishContext) {
 		".content",
 	);
 	*/
+	console.log(
+		`https://raw.githubusercontent.com/${DB_REPO}/refs/heads/${branch}/.github/${templatePath}.md`,
+		"https://raw.githubusercontent.com/SteamClientHomebrew/PluginDatabase/refs/heads/main/.github/pull_request_template.md",
+		{ firstRelease, prBranch, title },
+	);
 	const fetched = await fetch(
 		`https://raw.githubusercontent.com/${DB_REPO}/refs/heads/${branch}/.github/${templatePath}.md`,
+		// https://raw.githubusercontent.com/SteamClientHomebrew/PluginDatabase/refs/heads/main/.github/pull_request_template.md
 	);
 	if (!fetched.ok) {
 		throw new SemanticReleaseError(

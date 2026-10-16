@@ -126,14 +126,14 @@ export async function publish(config = DEFAULT_CONFIG, ctx: PublishContext) {
 
 	const { stdout: template } = await runGhCli(
 		"api",
-		`repos/${DB_REPO}/contents/.github/${templatePath}.md?ref=${encodeURIComponent(databaseBranch)}`,
+		`repos/${DB_REPO}/contents/.github/${templatePath}.md?ref=${databaseBranch}`,
 		"--jq",
 		".content",
 	);
 	const body = atob(template.replace(/\s+/g, ""))
-		.replace(/^# REPLACE_WITH_PLUGIN_NAME$/, `# ${plugin.name}`)
+		.replace(/^# REPLACE_WITH_PLUGIN_NAME/, `# ${plugin.name}`)
 		.replace(
-			"REPLACE_WITH_UPDATE_SUMMARY",
+			/^REPLACE_WITH_UPDATE_SUMMARY/,
 			notes.slice(notes.indexOf("\n"), notes.length),
 		);
 

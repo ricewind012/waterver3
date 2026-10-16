@@ -95,10 +95,10 @@ export async function publish(config = DEFAULT_CONFIG, ctx) {
     const templatePath = firstRelease
         ? "PULL_REQUEST_TEMPLATE/PLUGIN-UPDATE"
         : "pull_request_template";
-    const { stdout: template } = await runGhCli("api", `repos/${DB_REPO}/contents/.github/${templatePath}.md?ref=${encodeURIComponent(databaseBranch)}`, "--jq", ".content");
+    const { stdout: template } = await runGhCli("api", `repos/${DB_REPO}/contents/.github/${templatePath}.md?ref=${databaseBranch}`, "--jq", ".content");
     const body = atob(template.replace(/\s+/g, ""))
-        .replace(/^# REPLACE_WITH_PLUGIN_NAME$/, `# ${plugin.name}`)
-        .replace("REPLACE_WITH_UPDATE_SUMMARY", notes.slice(notes.indexOf("\n"), notes.length));
+        .replace(/^# REPLACE_WITH_PLUGIN_NAME/, `# ${plugin.name}`)
+        .replace(/^REPLACE_WITH_UPDATE_SUMMARY/, notes.slice(notes.indexOf("\n"), notes.length));
     console.log({ body, firstRelease, prBranch, title });
     if (false) {
         await run("git", ["commit", "-m", title]);

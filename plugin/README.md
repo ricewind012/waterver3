@@ -2,7 +2,8 @@
 
 This plugin bumps your `millennium.toml` version and optionally opens a PR for your Millennium plugin in the [plugin database][plugin-db].
 
-Note that, when opening your first PR, you will have to fill in the description by yourself.
+> [!NOTE]
+> In the PR template, you will have to fill in the description when opening your first PR, and check the checkboxes both by yourself.
 
 ## Usage
 

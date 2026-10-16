@@ -12,7 +12,7 @@ async function repoExists(name: string) {
 }
 
 function runGhCli(...args: readonly string[]) {
-	return run("gh", args); //{ env: tokenEnvironment });
+	return run("gh", args);
 }
 
 export async function publish(config = DEFAULT_CONFIG, ctx: PublishContext) {
@@ -39,12 +39,6 @@ export async function publish(config = DEFAULT_CONFIG, ctx: PublishContext) {
 	}
 	process.chdir(tmpDir);
 
-	await run("git", [
-		"remote",
-		"set-url",
-		"origin",
-		`https://github.com/${login}/PluginDatabase.git`,
-	]);
 	await run("git", ["config", "credential.helper", "!gh auth git-credential"]);
 	await run("git", ["config", "user.name", login]);
 	await run("git", [
@@ -132,7 +126,7 @@ export async function publish(config = DEFAULT_CONFIG, ctx: PublishContext) {
 
 	const { stdout: template } = await runGhCli(
 		"api",
-		`repos/${DB_REPO}/contents/.github/${templatePath}?ref=${encodeURIComponent(databaseBranch)}`,
+		`repos/${DB_REPO}/contents/.github/${templatePath}.md?ref=${encodeURIComponent(databaseBranch)}`,
 		"--jq",
 		".content",
 	);
@@ -143,7 +137,6 @@ export async function publish(config = DEFAULT_CONFIG, ctx: PublishContext) {
 			notes.slice(notes.indexOf("\n"), notes.length),
 		);
 
-	console.log({ login, repoName });
 	console.log({ body, firstRelease, prBranch, title });
 	if (false) {
 		await run("git", ["commit", "-m", title]);

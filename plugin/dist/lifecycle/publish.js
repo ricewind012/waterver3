@@ -7,7 +7,7 @@ async function repoExists(name) {
     return code === 0;
 }
 function runGhCli(...args) {
-    return run("gh", args); //{ env: tokenEnvironment });
+    return run("gh", args);
 }
 export async function publish(config = DEFAULT_CONFIG, ctx) {
     if (!config.openDatabasePr) {
@@ -29,12 +29,6 @@ export async function publish(config = DEFAULT_CONFIG, ctx) {
         await runGhCli("repo", "fork", DB_REPO, "--clone", "--", tmpDir);
     }
     process.chdir(tmpDir);
-    await run("git", [
-        "remote",
-        "set-url",
-        "origin",
-        `https://github.com/${login}/PluginDatabase.git`,
-    ]);
     await run("git", ["config", "credential.helper", "!gh auth git-credential"]);
     await run("git", ["config", "user.name", login]);
     await run("git", [
@@ -101,11 +95,10 @@ export async function publish(config = DEFAULT_CONFIG, ctx) {
     const templatePath = firstRelease
         ? "PULL_REQUEST_TEMPLATE/PLUGIN-UPDATE"
         : "pull_request_template";
-    const { stdout: template } = await runGhCli("api", `repos/${DB_REPO}/contents/.github/${templatePath}?ref=${encodeURIComponent(databaseBranch)}`, "--jq", ".content");
+    const { stdout: template } = await runGhCli("api", `repos/${DB_REPO}/contents/.github/${templatePath}.md?ref=${encodeURIComponent(databaseBranch)}`, "--jq", ".content");
     const body = atob(template.replace(/\s+/g, ""))
         .replace(/^# REPLACE_WITH_PLUGIN_NAME$/, `# ${plugin.name}`)
         .replace("REPLACE_WITH_UPDATE_SUMMARY", notes.slice(notes.indexOf("\n"), notes.length));
-    console.log({ login, repoName });
     console.log({ body, firstRelease, prBranch, title });
     if (false) {
         await run("git", ["commit", "-m", title]);

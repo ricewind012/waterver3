@@ -37,14 +37,10 @@ export async function run(command, args, options = {}) {
 }
 export const tokenEnvironment = (() => {
     const token = process.env.GH_TOKEN;
-    /*
     if (!token) {
-        throw new Error(
-            "GH_TOKEN is required to fork the PluginDatabase and open its update PR.",
-        );
+        throw new Error("GH_TOKEN is required to fork the PluginDatabase and open its update PR.");
     }
-        */
-    return { GH_TOKEN: token ?? "" };
+    return { GH_TOKEN: token };
 })();
 export function runGhCli(...args) {
     return run("gh", args); //{ env: tokenEnvironment });

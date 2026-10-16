@@ -40,9 +40,9 @@ export async function publish(config = DEFAULT_CONFIG, ctx: PublishContext) {
 	const forkedRepo = `${login}/${DB_REPO.split("/")[1]}`;
 	console.log({ forkedRepo, login, repoName });
 	if (await repoExists(forkedRepo)) {
-		await runGhCli("repo", "fork", DB_REPO, "--clone", "--", tmpDir);
-	} else {
 		await run("git", ["clone", forkedRepo, tmpDir]);
+	} else {
+		await runGhCli("repo", "fork", DB_REPO, "--clone", "--", tmpDir);
 	}
 	process.chdir(tmpDir);
 

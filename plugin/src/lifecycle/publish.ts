@@ -147,7 +147,7 @@ export async function publish(config = DEFAULT_CONFIG, ctx: PublishContext) {
 	);
 	*/
 	const fetched = await fetch(
-		`https://raw.githubusercontent.com/${DB_REPO}/refs/heads/${branch}/.github/${templatePath}`,
+		`https://raw.githubusercontent.com/${DB_REPO}/refs/heads/${branch}/.github/${templatePath}.md`,
 	);
 	if (!fetched.ok) {
 		throw new SemanticReleaseError(

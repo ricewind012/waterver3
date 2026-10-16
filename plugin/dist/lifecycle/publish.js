@@ -111,7 +111,7 @@ export async function publish(config = DEFAULT_CONFIG, ctx) {
         ".content",
     );
     */
-    const fetched = await fetch(`https://raw.githubusercontent.com/${DB_REPO}/refs/heads/${branch}/.github/${templatePath}`);
+    const fetched = await fetch(`https://raw.githubusercontent.com/${DB_REPO}/refs/heads/${branch}/.github/${templatePath}.md`);
     if (!fetched.ok) {
         throw new SemanticReleaseError(`Template URL returned ${fetched.status}: ${fetched.statusText}`);
     }

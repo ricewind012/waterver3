@@ -1,5 +1,5 @@
 import SemanticReleaseError from "@semantic-release/error";
-import { cleanup, DEFAULT_CONFIG, millenniumConfig, run, tmpDir, } from "../shared.js";
+import { DEFAULT_CONFIG, millenniumConfig, run, tmpDir } from "../shared.js";
 import { join } from "node:path";
 const DB_REPO = "SteamClientHomebrew/PluginDatabase";
 async function repoExists(name) {
@@ -94,35 +94,23 @@ export async function publish(config = DEFAULT_CONFIG, ctx) {
         ctx.logger.log("PluginDatabase already references this release");
         return;
     }
-    const firstRelease = !!ctx.lastRelease?.version;
+    const firstRelease = !ctx.lastRelease?.version;
     const title = firstRelease
         ? `Update ${plugin.name} to ${version}`
         : `Add ${plugin.name}`;
     const templatePath = firstRelease
         ? "PULL_REQUEST_TEMPLATE/PLUGIN-UPDATE"
         : "pull_request_template";
-    /*
-    const {stdout:template} = await runGhCli(
-        "api",
-        `repos/${DB_REPO}/contents/.github/${templatePath}?ref=${encodeURIComponent(databaseBranch)}`,
-        "--jq",
-        ".content",
-    );
-    */
-    //const {stdout:dbBranch}=await run('git', ['symbolic-ref', '--short', 'refs/remotes/origin/HEAD'])
-    const fetched = await fetch(`https://raw.githubusercontent.com/${DB_REPO}/refs/heads/${databaseBranch}/.github/${templatePath}.md`);
-    if (!fetched.ok) {
-        throw new SemanticReleaseError(`Template URL returned ${fetched.status}: ${fetched.statusText}`);
-    }
-    const body = (await fetched.text())
-        .replace("REPLACE_WITH_PLUGIN_NAME", plugin.name)
+    const { stdout: template } = await runGhCli("api", `repos/${DB_REPO}/contents/.github/${templatePath}?ref=${encodeURIComponent(databaseBranch)}`, "--jq", ".content");
+    const body = atob(template.replace(/\s+/g, ""))
+        .replace(/^# REPLACE_WITH_PLUGIN_NAME$/, `# ${plugin.name}`)
         .replace("REPLACE_WITH_UPDATE_SUMMARY", notes.slice(notes.indexOf("\n"), notes.length));
     console.log({ login, repoName });
     console.log({ body, firstRelease, prBranch, title });
-    return;
-    await run("git", ["commit", "-m", title]);
-    await run("git", ["push", "-u", "origin", prBranch]);
-    await runGhCli("pr", "create", "--repo", DB_REPO, "--base", databaseBranch, "--head", `${login}:${prBranch}`, "--title", title, "--body", body);
-    ctx.logger.log(`Opened plugin database PR for ${plugin.name} ${version}`);
-    await cleanup();
+    if (false) {
+        await run("git", ["commit", "-m", title]);
+        await run("git", ["push", "-u", "origin", prBranch]);
+        await runGhCli("pr", "create", "--repo", DB_REPO, "--base", databaseBranch, "--head", `${login}:${prBranch}`, "--title", title, "--body", body);
+        ctx.logger.log(`Opened plugin database PR for ${plugin.name} ${version}`);
+    }
 }

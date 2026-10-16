@@ -31,7 +31,6 @@ interface PluginConfig {
 }
 
 interface RunOptions {
-	env: Record<string, string>;
 	allowedExitCodes: number[];
 }
 
@@ -50,13 +49,7 @@ export async function run(
 	options: Partial<RunOptions> = {},
 ) {
 	try {
-		const { stdout } = await execFileAsync(command, args, {
-			encoding: "utf8",
-			env: {
-				...process.env,
-				...options.env,
-			},
-		});
+		const { stdout } = await execFileAsync(command, args, { encoding: "utf8" });
 		return { code: 0, stdout };
 	} catch (ex) {
 		const error = ex as ExecException;
@@ -68,8 +61,4 @@ export async function run(
 		const details = error.stderr?.toString() || error.message;
 		throw new Error(`${command} ${args.join(" ")} failed: ${details}`);
 	}
-}
-
-export function runGhCli(...args: readonly string[]) {
-	return run("gh", args); //{ env: tokenEnvironment });
 }

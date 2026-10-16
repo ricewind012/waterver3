@@ -1,14 +1,14 @@
 import SemanticReleaseError from "@semantic-release/error";
-import { cleanup, DEFAULT_CONFIG, millenniumConfig, run, runGhCli, tmpDir, } from "../shared.js";
+import { cleanup, DEFAULT_CONFIG, millenniumConfig, run, tmpDir, } from "../shared.js";
 import { join } from "node:path";
 const DB_REPO = "SteamClientHomebrew/PluginDatabase";
-export const env = (() => {
-    const token = process.env.GH_TOKEN;
-    if (!token) {
-        throw new Error("GH_TOKEN is required to fork the PluginDatabase and open its update PR.");
-    }
-    return { GH_TOKEN: token };
-})();
+async function repoExists(name) {
+    const { code } = await runGhCli("repo", "view", name);
+    return code === 0;
+}
+function runGhCli(...args) {
+    return run("gh", args); //{ env: tokenEnvironment });
+}
 export async function publish(config = DEFAULT_CONFIG, ctx) {
     if (!config.openDatabasePr) {
         return;
@@ -21,8 +21,13 @@ export async function publish(config = DEFAULT_CONFIG, ctx) {
         throw new SemanticReleaseError(`semantic-release did not pass one of: ${obj}`);
     }
     const [login, repoName] = new URL(repositoryUrl).pathname.slice(1).split("/");
-    const { stdout: databaseBranch } = await runGhCli("api", `repos/${DB_REPO}`, "--jq", ".default_branch");
-    await runGhCli("repo", "fork", DB_REPO, "--clone", "--", tmpDir);
+    const forkedRepo = `${login}/${DB_REPO.split("/")[1]}`;
+    if (await repoExists(forkedRepo)) {
+        await runGhCli("repo", "fork", DB_REPO, "--clone", "--", tmpDir);
+    }
+    else {
+        await run("git", ["clone", forkedRepo, tmpDir]);
+    }
     process.chdir(tmpDir);
     await run("git", [
         "remote",
@@ -37,6 +42,7 @@ export async function publish(config = DEFAULT_CONFIG, ctx) {
         "user.email",
         `${login}@users.noreply.github.com`,
     ]);
+    const { stdout: databaseBranch } = await runGhCli("api", `repos/${DB_REPO}`, "--jq", ".default_branch");
     const upstreamRemote = await run("git", ["remote", "get-url", "upstream"], {
         // Git returns 2 when there's no "upstream" remote
         allowedExitCodes: [2],

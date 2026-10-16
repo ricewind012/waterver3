@@ -6,23 +6,20 @@ import {
 	DEFAULT_CONFIG,
 	millenniumConfig,
 	run,
-	runGhCli,
 	tmpDir,
 } from "../shared.js";
 import { join } from "node:path";
 
 const DB_REPO = "SteamClientHomebrew/PluginDatabase";
 
-export const env = (() => {
-	const token = process.env.GH_TOKEN;
-	if (!token) {
-		throw new Error(
-			"GH_TOKEN is required to fork the PluginDatabase and open its update PR.",
-		);
-	}
+async function repoExists(name: string) {
+	const { code } = await runGhCli("repo", "view", name);
+	return code === 0;
+}
 
-	return { GH_TOKEN: token };
-})();
+function runGhCli(...args: readonly string[]) {
+	return run("gh", args); //{ env: tokenEnvironment });
+}
 
 export async function publish(config = DEFAULT_CONFIG, ctx: PublishContext) {
 	if (!config.openDatabasePr) {
@@ -40,14 +37,14 @@ export async function publish(config = DEFAULT_CONFIG, ctx: PublishContext) {
 	}
 
 	const [login, repoName] = new URL(repositoryUrl).pathname.slice(1).split("/");
-	const { stdout: databaseBranch } = await runGhCli(
-		"api",
-		`repos/${DB_REPO}`,
-		"--jq",
-		".default_branch",
-	);
-	await runGhCli("repo", "fork", DB_REPO, "--clone", "--", tmpDir);
+	const forkedRepo = `${login}/${DB_REPO.split("/")[1]}`;
+	if (await repoExists(forkedRepo)) {
+		await runGhCli("repo", "fork", DB_REPO, "--clone", "--", tmpDir);
+	} else {
+		await run("git", ["clone", forkedRepo, tmpDir]);
+	}
 	process.chdir(tmpDir);
+
 	await run("git", [
 		"remote",
 		"set-url",
@@ -62,6 +59,12 @@ export async function publish(config = DEFAULT_CONFIG, ctx: PublishContext) {
 		`${login}@users.noreply.github.com`,
 	]);
 
+	const { stdout: databaseBranch } = await runGhCli(
+		"api",
+		`repos/${DB_REPO}`,
+		"--jq",
+		".default_branch",
+	);
 	const upstreamRemote = await run("git", ["remote", "get-url", "upstream"], {
 		// Git returns 2 when there's no "upstream" remote
 		allowedExitCodes: [2],

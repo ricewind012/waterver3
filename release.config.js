@@ -4,7 +4,10 @@
 export default {
 	plugins: [
 		"@semantic-release/commit-analyzer",
-		"@semantic-release/release-notes-generator",
+		[
+			"@semantic-release/release-notes-generator",
+			{ writerOpts: { headerPartial: "" } },
+		],
 		"@semantic-release/npm",
 		["@ricewind012/semantic-release-millennium", { openDatabasePr: true }],
 		[

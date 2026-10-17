@@ -20,6 +20,8 @@ export async function publish(config = DEFAULT_CONFIG, ctx: PublishContext) {
 		return;
 	}
 
+	// prepare semantic-release
+	// could be in verifyConditions but nextRelease is undefined there
 	const { repositoryUrl } = ctx.options;
 	const branch = ctx.branch.name;
 	const { notes, gitTag, version } = ctx.nextRelease;
@@ -30,15 +32,16 @@ export async function publish(config = DEFAULT_CONFIG, ctx: PublishContext) {
 		);
 	}
 
+	// prepare git
 	const [login, repoName] = new URL(repositoryUrl).pathname.slice(1).split("/");
 	const forkedRepo = `https://github.com/${login}/${DB_REPO.split("/")[1]}`;
-	if (await repoExists(forkedRepo)) {
-		await run("git", ["clone", forkedRepo, tmpDir]);
-	} else {
-		await runGhCli("repo", "fork", DB_REPO, "--clone", "--", tmpDir);
-	}
+	// TODO: needs some permission in gh token
+	//if (await repoExists(forkedRepo)) {
+	//	await run("git", ["clone", forkedRepo, tmpDir]);
+	//} else {
+	await runGhCli("repo", "fork", DB_REPO, "--clone", "--", tmpDir);
+	//}
 	process.chdir(tmpDir);
-
 	await run("git", ["config", "credential.helper", "!gh auth git-credential"]);
 	await run("git", ["config", "user.name", login]);
 	await run("git", [
@@ -47,12 +50,14 @@ export async function publish(config = DEFAULT_CONFIG, ctx: PublishContext) {
 		`${login}@users.noreply.github.com`,
 	]);
 
+	// real shit
 	const { stdout: databaseBranch } = await runGhCli(
 		"api",
 		`repos/${DB_REPO}`,
 		"--jq",
 		".default_branch",
 	);
+	// TODO: useless?
 	const upstreamRemote = await run("git", ["remote", "get-url", "upstream"], {
 		// returns 2 when there's no "upstream" remote
 		allowedExitCodes: [2],
@@ -62,10 +67,8 @@ export async function publish(config = DEFAULT_CONFIG, ctx: PublishContext) {
 	await run("git", ["remote", remoteGitCmd, "upstream", upstream]);
 	await run("git", ["fetch", "upstream", databaseBranch]);
 	const prBranch = `${repoName}/v${version}`;
-	await run("git", ["switch", "--create", prBranch, "FETCH_HEAD"]);
+	await run("git", ["switch", "-c", prBranch, "FETCH_HEAD"]);
 
-	const { plugin } = millenniumConfig.content;
-	const submodulePath = join("plugins", plugin.id);
 	const gitmodulesPath = join(tmpDir, ".gitmodules");
 	const submodules = await run(
 		"git",
@@ -79,6 +82,7 @@ export async function publish(config = DEFAULT_CONFIG, ctx: PublishContext) {
 		// returns 1 when no submodule path matches
 		{ allowedExitCodes: [1] },
 	);
+	const submodulePath = join("plugins", repoName);
 	const hasSubmodule = submodules.stdout
 		.split("\n")
 		.some((e) => e.endsWith(` ${submodulePath}`));
@@ -116,7 +120,8 @@ export async function publish(config = DEFAULT_CONFIG, ctx: PublishContext) {
 		return;
 	}
 
-	const firstRelease = !ctx.lastRelease?.version;
+	const firstRelease = !!ctx.lastRelease?.version;
+	const { plugin } = millenniumConfig.content;
 	const title = firstRelease
 		? `Update ${plugin.name} to ${version}`
 		: `Add ${plugin.name}`;
@@ -131,16 +136,13 @@ export async function publish(config = DEFAULT_CONFIG, ctx: PublishContext) {
 		".content",
 	);
 	const body = atob(template.replace(/\s+/g, ""))
-		.replace(/^# REPLACE_WITH_PLUGIN_NAME/, `# ${plugin.name}`)
-		.replace(
-			/^REPLACE_WITH_UPDATE_SUMMARY/,
-			notes.slice(notes.indexOf("\n"), notes.length),
-		);
+		.replace("# REPLACE_WITH_PLUGIN_NAME", `# ${plugin.name}`)
+		.replace(/REPLACE_WITH_UPDATE_SUMMARY/g, notes);
 
-	console.log({ body, firstRelease, prBranch, title });
+	console.log({ body, config, firstRelease, prBranch, title });
+	await run("git", ["commit", "-m", title]);
+	await run("git", ["push", "-u", "origin", prBranch]);
 	if (false) {
-		await run("git", ["commit", "-m", title]);
-		await run("git", ["push", "-u", "origin", prBranch]);
 		await runGhCli(
 			"pr",
 			"create",

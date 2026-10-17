@@ -13,6 +13,8 @@ export async function publish(config = DEFAULT_CONFIG, ctx) {
     if (!config.openDatabasePr) {
         return;
     }
+    // prepare semantic-release
+    // could be in verifyConditions but nextRelease is undefined there
     const { repositoryUrl } = ctx.options;
     const branch = ctx.branch.name;
     const { notes, gitTag, version } = ctx.nextRelease;
@@ -20,14 +22,15 @@ export async function publish(config = DEFAULT_CONFIG, ctx) {
         const obj = JSON.stringify({ notes, repositoryUrl });
         throw new SemanticReleaseError(`semantic-release did not pass one of: ${obj}`);
     }
+    // prepare git
     const [login, repoName] = new URL(repositoryUrl).pathname.slice(1).split("/");
     const forkedRepo = `https://github.com/${login}/${DB_REPO.split("/")[1]}`;
-    if (await repoExists(forkedRepo)) {
-        await run("git", ["clone", forkedRepo, tmpDir]);
-    }
-    else {
-        await runGhCli("repo", "fork", DB_REPO, "--clone", "--", tmpDir);
-    }
+    // TODO: needs some permission in gh token
+    //if (await repoExists(forkedRepo)) {
+    //	await run("git", ["clone", forkedRepo, tmpDir]);
+    //} else {
+    await runGhCli("repo", "fork", DB_REPO, "--clone", "--", tmpDir);
+    //}
     process.chdir(tmpDir);
     await run("git", ["config", "credential.helper", "!gh auth git-credential"]);
     await run("git", ["config", "user.name", login]);
@@ -36,7 +39,9 @@ export async function publish(config = DEFAULT_CONFIG, ctx) {
         "user.email",
         `${login}@users.noreply.github.com`,
     ]);
+    // real shit
     const { stdout: databaseBranch } = await runGhCli("api", `repos/${DB_REPO}`, "--jq", ".default_branch");
+    // TODO: useless?
     const upstreamRemote = await run("git", ["remote", "get-url", "upstream"], {
         // returns 2 when there's no "upstream" remote
         allowedExitCodes: [2],
@@ -46,9 +51,7 @@ export async function publish(config = DEFAULT_CONFIG, ctx) {
     await run("git", ["remote", remoteGitCmd, "upstream", upstream]);
     await run("git", ["fetch", "upstream", databaseBranch]);
     const prBranch = `${repoName}/v${version}`;
-    await run("git", ["switch", "--create", prBranch, "FETCH_HEAD"]);
-    const { plugin } = millenniumConfig.content;
-    const submodulePath = join("plugins", plugin.id);
+    await run("git", ["switch", "-c", prBranch, "FETCH_HEAD"]);
     const gitmodulesPath = join(tmpDir, ".gitmodules");
     const submodules = await run("git", [
         "config",
@@ -59,6 +62,7 @@ export async function publish(config = DEFAULT_CONFIG, ctx) {
     ], 
     // returns 1 when no submodule path matches
     { allowedExitCodes: [1] });
+    const submodulePath = join("plugins", repoName);
     const hasSubmodule = submodules.stdout
         .split("\n")
         .some((e) => e.endsWith(` ${submodulePath}`));
@@ -88,7 +92,8 @@ export async function publish(config = DEFAULT_CONFIG, ctx) {
         ctx.logger.log("PluginDatabase already references this release");
         return;
     }
-    const firstRelease = !ctx.lastRelease?.version;
+    const firstRelease = !!ctx.lastRelease?.version;
+    const { plugin } = millenniumConfig.content;
     const title = firstRelease
         ? `Update ${plugin.name} to ${version}`
         : `Add ${plugin.name}`;
@@ -97,12 +102,12 @@ export async function publish(config = DEFAULT_CONFIG, ctx) {
         : "pull_request_template";
     const { stdout: template } = await runGhCli("api", `repos/${DB_REPO}/contents/.github/${templatePath}.md?ref=${databaseBranch}`, "--jq", ".content");
     const body = atob(template.replace(/\s+/g, ""))
-        .replace(/^# REPLACE_WITH_PLUGIN_NAME/, `# ${plugin.name}`)
-        .replace(/^REPLACE_WITH_UPDATE_SUMMARY/, notes.slice(notes.indexOf("\n"), notes.length));
-    console.log({ body, firstRelease, prBranch, title });
+        .replace("# REPLACE_WITH_PLUGIN_NAME", `# ${plugin.name}`)
+        .replace(/REPLACE_WITH_UPDATE_SUMMARY/g, notes);
+    console.log({ body, config, firstRelease, prBranch, title });
+    await run("git", ["commit", "-m", title]);
+    await run("git", ["push", "-u", "origin", prBranch]);
     if (false) {
-        await run("git", ["commit", "-m", title]);
-        await run("git", ["push", "-u", "origin", prBranch]);
         await runGhCli("pr", "create", "--repo", DB_REPO, "--base", databaseBranch, "--head", `${login}:${prBranch}`, "--title", title, "--body", body);
         ctx.logger.log(`Opened plugin database PR for ${plugin.name} ${version}`);
     }

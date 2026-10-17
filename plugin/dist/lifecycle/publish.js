@@ -32,7 +32,6 @@ export async function publish(config = DEFAULT_CONFIG, ctx) {
     await runGhCli("repo", "fork", DB_REPO, "--clone", "--", tmpDir);
     //}
     process.chdir(tmpDir);
-    /*
     await run("git", ["config", "credential.helper", "!gh auth git-credential"]);
     await run("git", ["config", "user.name", login]);
     await run("git", [
@@ -40,7 +39,6 @@ export async function publish(config = DEFAULT_CONFIG, ctx) {
         "user.email",
         `${login}@users.noreply.github.com`,
     ]);
-    */
     // real shit
     const { stdout: databaseBranch } = await runGhCli("api", `repos/${DB_REPO}`, "--jq", ".default_branch");
     // TODO: useless?

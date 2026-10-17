@@ -5,8 +5,8 @@ This plugin updates the version in your `millennium.toml` and optionally opens a
 > [!NOTE]
 > You must still do the following yourself:
 >
-> - Fill in the PR template's description for the first release.
-> - Check the boxes in the PR template.
+> - Fill in the PR template's description for the first release
+> - Check the boxes in the PR template
 
 ## Usage
 
@@ -38,7 +38,7 @@ The [@semantic-release/git][sr-git] plugin has to go _after_ this plugin so it c
 
 ### CI
 
-Make a personal access token with the `public_repo` and `workflow` scopes, then set `GH_TOKEN` to authenticate the GitHub CLI:
+Make a personal access token with the `public_repo` (to fork repos) and `workflow` (to ) scopes, then set `GH_TOKEN` to authenticate the GitHub CLI:
 
 ```yaml
 - name: Release

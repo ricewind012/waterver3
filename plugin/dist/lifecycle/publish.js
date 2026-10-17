@@ -1,13 +1,8 @@
 import SemanticReleaseError from "@semantic-release/error";
 import { DEFAULT_CONFIG, millenniumConfig, run, tmpDir } from "../shared.js";
+import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-const DB_REPO_OWNER = "SteamClientHomebrew";
-const DB_REPO_NAME = "PluginDatabase";
-const DB_REPO = `${DB_REPO_OWNER}/${DB_REPO_NAME}`;
-async function repoExists(name) {
-    const { code } = await runGhCli("repo", "view", name);
-    return code === 0;
-}
+const DB_REPO = "SteamClientHomebrew/PluginDatabase";
 function runGhCli(...args) {
     return run("gh", args);
 }
@@ -35,23 +30,9 @@ export async function publish(config = DEFAULT_CONFIG, ctx) {
     }
     // prepare git
     const [login, repoName] = new URL(repositoryUrl).pathname.slice(1).split("/");
-    //const forkedRepo = `https://github.com/${login}/${DB_REPO_NAME}`;
-    // TODO: needs some permission in gh token
-    //if (await repoExists(forkedRepo)) {
-    //	await run("git", ["clone", forkedRepo, tmpDir]);
-    //} else {
     await runGhCli("repo", "fork", DB_REPO, "--clone", "--", tmpDir);
-    //}
     process.chdir(tmpDir);
     // real shit
-    /*
-    const { stdout: databaseBranch } = await runGhCli(
-        "api",
-        `repos/${DB_REPO}`,
-        "--jq",
-        ".default_branch",
-    );
-    */
     const { stdout: defBranch } = await run("git", [
         "symbolic-ref",
         "--short",
@@ -83,26 +64,20 @@ export async function publish(config = DEFAULT_CONFIG, ctx) {
     const hasSubmodule = submodules.stdout
         .split("\n")
         .some((e) => e.endsWith(` ${submodulePath}`));
-    await run("git", hasSubmodule
-        ? ["submodule", "update", "--init", "--", submodulePath]
+    await runGitAsMe("git", hasSubmodule
+        ? ["submodule", "update", "--init", submodulePath]
         : ["submodule", "add", repositoryUrl, submodulePath]);
     await run("git", ["-C", submodulePath, "fetch", "origin", "--tags"]);
-    const targetCommit = await run("git", [
+    const { stdout: targetCommit } = await run("git", [
         "-C",
         submodulePath,
         "rev-parse",
         "--verify",
         `${gitTag}^{commit}`,
     ]);
-    await run("git", [
-        "-C",
-        submodulePath,
-        "checkout",
-        "--detach",
-        targetCommit.stdout,
-    ]);
-    await run("git", ["add", "--", ".gitmodules", submodulePath]);
-    const diff = await run("git", ["diff", "--cached", "--quiet", "--", ".gitmodules", submodulePath], 
+    await run("git", ["-C", submodulePath, "checkout", "--detach", targetCommit]);
+    await runGitAsMe(login, ["add", ".gitmodules", submodulePath]);
+    const diff = await run("git", ["diff", "--cached", "--quiet", ".gitmodules", submodulePath], 
     // returns 1 when there are not staged changes
     { allowedExitCodes: [1] });
     if (diff.code === 0) {
@@ -115,22 +90,20 @@ export async function publish(config = DEFAULT_CONFIG, ctx) {
         ? `Update ${plugin.name} to ${version}`
         : `Add ${plugin.name}`;
     const templatePath = firstRelease
-        ? "PULL_REQUEST_TEMPLATE/PLUGIN-UPDATE"
-        : "pull_request_template";
-    const { stdout: template } = await runGhCli("api", `repos/${DB_REPO}/contents/.github/${templatePath}.md?ref=${databaseBranch}`, "--jq", ".content");
+        ? join("PULL_REQUEST_TEMPLATE", "PLUGIN-UPDATE.md")
+        : "pull_request_template.md";
+    /*
+    const { stdout: template } = await runGhCli(
+        "api",
+        `repos/${DB_REPO}/contents/.github/${templatePath}.md?ref=${databaseBranch}`,
+        "--jq",
+        ".content",
+    );
+    */
+    const template = await readFile(join(".github", templatePath), "utf8");
     const body = atob(template.replace(/\s+/g, ""))
         .replace("# REPLACE_WITH_PLUGIN_NAME", `# ${plugin.name}`)
         .replace(/REPLACE_WITH_UPDATE_SUMMARY/g, notes.replace(/^# [^\n]+/, ""));
-    console.log({ body, config, firstRelease, prBranch, title });
-    /*
-    await run("git", ["config", "credential.helper", "!gh auth git-credential"]);
-    await run("git", ["config", "user.name", login]);
-    await run("git", [
-        "config",
-        "user.email",
-        `${login}@users.noreply.github.com`,
-    ]);
-    */
     await runGitAsMe(login, ["commit", "-m", title]);
     await runGitAsMe(login, ["push", "-u", "origin", prBranch]);
     if (false) {

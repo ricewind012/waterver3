@@ -1,7 +1,9 @@
 import SemanticReleaseError from "@semantic-release/error";
 import { DEFAULT_CONFIG, millenniumConfig, run, tmpDir } from "../shared.js";
 import { join } from "node:path";
-const DB_REPO = "SteamClientHomebrew/PluginDatabase";
+const DB_REPO_OWNER = "SteamClientHomebrew";
+const DB_REPO_NAME = "PluginDatabase";
+const DB_REPO = `${DB_REPO_OWNER}/${DB_REPO_NAME}`;
 async function repoExists(name) {
     const { code } = await runGhCli("repo", "view", name);
     return code === 0;
@@ -14,7 +16,6 @@ export async function publish(config = DEFAULT_CONFIG, ctx) {
         return;
     }
     // prepare semantic-release
-    // could be in verifyConditions but nextRelease is undefined there
     const { repositoryUrl } = ctx.options;
     const branch = ctx.branch.name;
     const { notes, gitTag, version } = ctx.nextRelease;
@@ -24,7 +25,7 @@ export async function publish(config = DEFAULT_CONFIG, ctx) {
     }
     // prepare git
     const [login, repoName] = new URL(repositoryUrl).pathname.slice(1).split("/");
-    const forkedRepo = `https://github.com/${login}/${DB_REPO.split("/")[1]}`;
+    const forkedRepo = `https://github.com/${login}/${DB_REPO_NAME}`;
     // TODO: needs some permission in gh token
     //if (await repoExists(forkedRepo)) {
     //	await run("git", ["clone", forkedRepo, tmpDir]);
@@ -50,7 +51,7 @@ export async function publish(config = DEFAULT_CONFIG, ctx) {
     const upstream = `https://github.com/${DB_REPO}.git`;
     await run("git", ["remote", remoteGitCmd, "upstream", upstream]);
     await run("git", ["fetch", "upstream", databaseBranch]);
-    const prBranch = `${repoName}/v${version}`;
+    const prBranch = `${repoName}/v${version}_TEST_LOL`;
     await run("git", ["switch", "-c", prBranch, "FETCH_HEAD"]);
     const gitmodulesPath = join(tmpDir, ".gitmodules");
     const submodules = await run("git", [
@@ -103,7 +104,9 @@ export async function publish(config = DEFAULT_CONFIG, ctx) {
     const { stdout: template } = await runGhCli("api", `repos/${DB_REPO}/contents/.github/${templatePath}.md?ref=${databaseBranch}`, "--jq", ".content");
     const body = atob(template.replace(/\s+/g, ""))
         .replace("# REPLACE_WITH_PLUGIN_NAME", `# ${plugin.name}`)
-        .replace(/REPLACE_WITH_UPDATE_SUMMARY/g, notes);
+        .replace(/REPLACE_WITH_UPDATE_SUMMARY/g, 
+    //notes.replace(/^# [^\r\n]*\r?\n(?:[ \t]*\r?\n)?/, ""),
+    notes.slice(notes.indexOf("\n"), notes.length));
     console.log({ body, config, firstRelease, prBranch, title });
     await run("git", ["commit", "-m", title]);
     await run("git", ["push", "-u", "origin", prBranch]);

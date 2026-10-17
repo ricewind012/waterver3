@@ -3,9 +3,14 @@
 This plugin bumps your `millennium.toml` version and optionally opens a PR for your Millennium plugin in the [plugin database][plugin-db].
 
 > [!NOTE]
-> In the PR template, you will have to fill in the description when opening your first PR, and check the checkboxes both by yourself.
+> You will still have to do these things by yourself:
+>
+> - filling in the description for the PR template _on first release_
+> - checking the checkboxes for the PR template
 
 ## Usage
+
+First of all, you will have to fork the [plugin database][plugin-db] repository in order for CI to be able to use it.
 
 ### Config
 
@@ -15,6 +20,7 @@ export default {
 		"@semantic-release/commit-analyzer",
 		"@semantic-release/release-notes-generator",
 		"@semantic-release/npm",
+		"@semantic-release/github",
 		"@ricewind012/semantic-release-millennium",
 		[
 			"@semantic-release/git",
@@ -22,14 +28,16 @@ export default {
 				assets: ["millennium.toml", "package.json", "package-lock.json"],
 			},
 		],
-		"@semantic-release/github",
 	],
 };
 ```
 
 The [@semantic-release/commit-analyzer][sr-commit-analyzer] and [@semantic-release/release-notes-generator][sr-release-notes-generator] plugins need to go _before_ this plugin in order to get the changelog for the PR template.
 
-The [@semantic-release/git][sr-git] plugin has to go _after_ this plugin in order to bump the version in `millennium.toml`.
+The [@semantic-release/git][sr-git] plugin has to go _after_ this plugin in
+order to bump the version in `millennium.toml`.
+
+TODO: ^ real?
 
 ### CI
 
@@ -38,8 +46,7 @@ Provide `GH_TOKEN` for GitHub CLI authentication in CI:
 ```yaml
 - name: Release
   env:
-    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    GH_TOKEN: ${{ secrets.GH_TOKEN }}
+    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   run: npx semantic-release
 ```
 

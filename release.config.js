@@ -9,11 +9,11 @@ export default {
 			{ writerOpts: { headerPartial: "" } },
 		],
 		"@semantic-release/npm",
-		["@ricewind012/semantic-release-millennium", { openDatabasePr: true }],
 		[
 			"@semantic-release/git",
 			{ assets: ["millennium.toml", "package.json", "package-lock.json"] },
 		],
 		"@semantic-release/github",
+		["@ricewind012/semantic-release-millennium", { openDatabasePr: true }],
 	],
 };

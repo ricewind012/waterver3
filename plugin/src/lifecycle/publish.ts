@@ -125,7 +125,7 @@ export async function publish(config = DEFAULT_CONFIG, ctx: PublishContext) {
 	);
 	*/
 	const template = await readFile(join(".github", templatePath), "utf8");
-	const body = atob(template.replace(/\s+/g, ""))
+	const body = template
 		.replace("# REPLACE_WITH_PLUGIN_NAME", `# ${plugin.name}`)
 		.replace(/REPLACE_WITH_UPDATE_SUMMARY/g, notes.replace(/^# [^\n]+/, ""));
 

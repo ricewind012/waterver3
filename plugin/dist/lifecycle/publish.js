@@ -101,7 +101,7 @@ export async function publish(config = DEFAULT_CONFIG, ctx) {
     );
     */
     const template = await readFile(join(".github", templatePath), "utf8");
-    const body = atob(template.replace(/\s+/g, ""))
+    const body = template
         .replace("# REPLACE_WITH_PLUGIN_NAME", `# ${plugin.name}`)
         .replace(/REPLACE_WITH_UPDATE_SUMMARY/g, notes.replace(/^# [^\n]+/, ""));
     await runGitAsMe(login, ["commit", "-m", title]);

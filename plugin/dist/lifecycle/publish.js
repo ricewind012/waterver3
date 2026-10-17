@@ -11,6 +11,20 @@ async function repoExists(name) {
 function runGhCli(...args) {
     return run("gh", args);
 }
+function runGitAsMe(login, args) {
+    return run("git", [
+        "-c",
+        "credential.helper",
+        "!gh auth git-credential",
+        "-c",
+        "user.name",
+        login,
+        "-c",
+        "user.email",
+        `${login}@users.noreply.github.com`,
+        ...args,
+    ]);
+}
 export async function publish(config = DEFAULT_CONFIG, ctx) {
     if (!config.openDatabasePr) {
         return;
@@ -32,15 +46,21 @@ export async function publish(config = DEFAULT_CONFIG, ctx) {
     await runGhCli("repo", "fork", DB_REPO, "--clone", "--", tmpDir);
     //}
     process.chdir(tmpDir);
-    await run("git", ["config", "credential.helper", "!gh auth git-credential"]);
-    await run("git", ["config", "user.name", login]);
-    await run("git", [
-        "config",
-        "user.email",
-        `${login}@users.noreply.github.com`,
-    ]);
     // real shit
-    const { stdout: databaseBranch } = await runGhCli("api", `repos/${DB_REPO}`, "--jq", ".default_branch");
+    /*
+    const { stdout: databaseBranch } = await runGhCli(
+        "api",
+        `repos/${DB_REPO}`,
+        "--jq",
+        ".default_branch",
+    );
+    */
+    const { stdout: defBranch } = await run("git", [
+        "symbolic-ref",
+        "--short",
+        "refs/remotes/origin/HEAD",
+    ]);
+    const [, databaseBranch] = defBranch.split("/");
     // TODO: useless?
     const upstreamRemote = await run("git", ["remote", "get-url", "upstream"], {
         // returns 2 when there's no "upstream" remote
@@ -50,7 +70,7 @@ export async function publish(config = DEFAULT_CONFIG, ctx) {
     const upstream = `https://github.com/${DB_REPO}.git`;
     await run("git", ["remote", remoteGitCmd, "upstream", upstream]);
     await run("git", ["fetch", "upstream", databaseBranch]);
-    const prBranch = `${repoName}/v${version}_TEST_LOL`;
+    const prBranch = `${repoName}/v${version}`;
     await run("git", ["switch", "-c", prBranch, "FETCH_HEAD"]);
     const gitmodulesPath = join(tmpDir, ".gitmodules");
     const submodules = await run("git", [
@@ -114,8 +134,8 @@ export async function publish(config = DEFAULT_CONFIG, ctx) {
         `${login}@users.noreply.github.com`,
     ]);
     */
-    await run("git", ["commit", "-m", title]);
-    await run("git", ["push", "-u", "origin", prBranch]);
+    await runGitAsMe(login, ["commit", "-m", title]);
+    await runGitAsMe(login, ["push", "-u", "origin", prBranch]);
     if (false) {
         await runGhCli("pr", "create", "--repo", DB_REPO, "--base", databaseBranch, "--head", `${login}:${prBranch}`, "--title", title, "--body", body);
         ctx.logger.log(`Opened plugin database PR for ${plugin.name} ${version}`);

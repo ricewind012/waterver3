@@ -40,6 +40,13 @@ export const millenniumConfig = new TomlFile<MillenniumPluginConfig>(
 export const tmpDir = await mkdtemp(join(tmpdir(), "plugin-database-"));
 
 export async function cleanup() {
+	/*
+	for (const key of ["credential.helper", "user.name", "user.email"]) {
+		await run("git", ["-C", tmpDir, "config", "--local", "all", key], {
+			allowedExitCodes: [5],
+		});
+	}
+		*/
 	await rm(tmpDir, { force: true, recursive: true });
 }
 

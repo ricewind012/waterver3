@@ -12,6 +12,13 @@ const execFileAsync = promisify(execFile);
 export const millenniumConfig = new TomlFile(MILLENNIUM_CONFIG_FILE);
 export const tmpDir = await mkdtemp(join(tmpdir(), "plugin-database-"));
 export async function cleanup() {
+    /*
+    for (const key of ["credential.helper", "user.name", "user.email"]) {
+        await run("git", ["-C", tmpDir, "config", "--local", "all", key], {
+            allowedExitCodes: [5],
+        });
+    }
+        */
     await rm(tmpDir, { force: true, recursive: true });
 }
 export async function run(command, args, options = {}) {

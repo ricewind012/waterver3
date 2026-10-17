@@ -38,12 +38,12 @@ The [@semantic-release/git][sr-git] plugin has to go _after_ this plugin so it c
 
 ### CI
 
-Set `GH_TOKEN` to authenticate the GitHub CLI:
+Make a personal access token with the `public_repo` and `workflow` scopes, then set `GH_TOKEN` to authenticate the GitHub CLI:
 
 ```yaml
 - name: Release
   env:
-    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    GH_TOKEN: ${{ secrets.PAT_TOKEN }}
   run: npx semantic-release
 ```
 

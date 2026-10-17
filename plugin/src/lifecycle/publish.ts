@@ -24,7 +24,6 @@ export async function publish(config = DEFAULT_CONFIG, ctx: PublishContext) {
 
 	// prepare semantic-release
 	const { repositoryUrl } = ctx.options;
-	const branch = ctx.branch.name;
 	const { notes, gitTag, version } = ctx.nextRelease;
 	if (!repositoryUrl || !notes) {
 		const obj = JSON.stringify({ notes, repositoryUrl });
@@ -35,7 +34,7 @@ export async function publish(config = DEFAULT_CONFIG, ctx: PublishContext) {
 
 	// prepare git
 	const [login, repoName] = new URL(repositoryUrl).pathname.slice(1).split("/");
-	const forkedRepo = `https://github.com/${login}/${DB_REPO_NAME}`;
+	//const forkedRepo = `https://github.com/${login}/${DB_REPO_NAME}`;
 	// TODO: needs some permission in gh token
 	//if (await repoExists(forkedRepo)) {
 	//	await run("git", ["clone", forkedRepo, tmpDir]);
@@ -43,6 +42,7 @@ export async function publish(config = DEFAULT_CONFIG, ctx: PublishContext) {
 	await runGhCli("repo", "fork", DB_REPO, "--clone", "--", tmpDir);
 	//}
 	process.chdir(tmpDir);
+	/*
 	await run("git", ["config", "credential.helper", "!gh auth git-credential"]);
 	await run("git", ["config", "user.name", login]);
 	await run("git", [
@@ -50,6 +50,7 @@ export async function publish(config = DEFAULT_CONFIG, ctx: PublishContext) {
 		"user.email",
 		`${login}@users.noreply.github.com`,
 	]);
+	*/
 
 	// real shit
 	const { stdout: databaseBranch } = await runGhCli(
@@ -91,7 +92,7 @@ export async function publish(config = DEFAULT_CONFIG, ctx: PublishContext) {
 		"git",
 		hasSubmodule
 			? ["submodule", "update", "--init", "--", submodulePath]
-			: ["submodule", "add", "--branch", branch, repositoryUrl, submodulePath],
+			: ["submodule", "add", repositoryUrl, submodulePath],
 	);
 
 	await run("git", ["-C", submodulePath, "fetch", "origin", "--tags"]);
@@ -138,13 +139,19 @@ export async function publish(config = DEFAULT_CONFIG, ctx: PublishContext) {
 	);
 	const body = atob(template.replace(/\s+/g, ""))
 		.replace("# REPLACE_WITH_PLUGIN_NAME", `# ${plugin.name}`)
-		.replace(
-			/REPLACE_WITH_UPDATE_SUMMARY/g,
-			//notes.replace(/^# [^\r\n]*\r?\n(?:[ \t]*\r?\n)?/, ""),
-			notes.slice(notes.indexOf("\n"), notes.length),
-		);
+		.replace(/REPLACE_WITH_UPDATE_SUMMARY/g, notes.replace(/^# [^\n]+/, ""));
 
 	console.log({ body, config, firstRelease, prBranch, title });
+
+	/*
+	await run("git", ["config", "credential.helper", "!gh auth git-credential"]);
+	await run("git", ["config", "user.name", login]);
+	await run("git", [
+		"config",
+		"user.email",
+		`${login}@users.noreply.github.com`,
+	]);
+	*/
 	await run("git", ["commit", "-m", title]);
 	await run("git", ["push", "-u", "origin", prBranch]);
 	if (false) {

@@ -21,7 +21,7 @@ function runGitAsMe(login: string, args: readonly string[]) {
 	return run("git", [
 		"-c",
 		"credential.helper",
-		"!gh auth git-credential",
+		"!/usr/bin/gh auth git-credential",
 		"-c",
 		"user.name",
 		login,

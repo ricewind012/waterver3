@@ -25,7 +25,7 @@ interface MillenniumPluginConfig {
 
 interface PluginConfig {
 	/**
-	 * Open a PR to the Millennium plugin database?
+	 * Whether to open a PR to the Millennium plugin database.
 	 */
 	openDatabasePr: boolean;
 }

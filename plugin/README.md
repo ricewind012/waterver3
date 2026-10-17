@@ -1,16 +1,16 @@
 # semantic-release-millennium
 
-This plugin bumps your `millennium.toml` version and optionally opens a PR for your Millennium plugin in the [plugin database][plugin-db].
+This plugin updates the version in your `millennium.toml` and optionally opens a pull request for your Millennium plugin in the [plugin database][plugin-db].
 
 > [!NOTE]
-> You will still have to do these things by yourself:
+> You must still do the following yourself:
 >
-> - filling in the description for the PR template _on first release_
-> - checking the checkboxes for the PR template
+> - Fill in the PR template's description for the first release.
+> - Check the boxes in the PR template.
 
 ## Usage
 
-First of all, you will have to fork the [plugin database][plugin-db] repository in order for CI to be able to use it.
+First, fork the [plugin database][plugin-db] repository so that CI can use it.
 
 ### Config
 
@@ -32,16 +32,13 @@ export default {
 };
 ```
 
-The [@semantic-release/commit-analyzer][sr-commit-analyzer] and [@semantic-release/release-notes-generator][sr-release-notes-generator] plugins need to go _before_ this plugin in order to get the changelog for the PR template.
+The [@semantic-release/commit-analyzer][sr-commit-analyzer] and [@semantic-release/release-notes-generator][sr-release-notes-generator] plugins _before_ this plugin to generate the release notes used in the PR template.
 
-The [@semantic-release/git][sr-git] plugin has to go _after_ this plugin in
-order to bump the version in `millennium.toml`.
-
-TODO: ^ real?
+The [@semantic-release/git][sr-git] plugin has to go _after_ this plugin so it can commit the updated version in `millennium.toml`.
 
 ### CI
 
-Provide `GH_TOKEN` for GitHub CLI authentication in CI:
+Set `GH_TOKEN` to authenticate the GitHub CLI:
 
 ```yaml
 - name: Release
@@ -52,9 +49,9 @@ Provide `GH_TOKEN` for GitHub CLI authentication in CI:
 
 ## Options
 
-| Option         | Description                                               | Default |
-| -------------- | --------------------------------------------------------- | ------- |
-| openDatabasePr | Open a PR to the Millennium [plugin database][plugin-db]? | false   |
+| Option           | Description                                                          | Default |
+| ---------------- | -------------------------------------------------------------------- | ------- |
+| `openDatabasePr` | Whether to open a PR in the Millennium [plugin database][plugin-db]. | `false` |
 
 [plugin-db]: https://github.com/SteamClientHomebrew/PluginDatabase
 [sr-commit-analyzer]: https://github.com/semantic-release/commit-analyzer

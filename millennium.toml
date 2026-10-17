@@ -3,7 +3,7 @@ author = "ricewind"
 description = "Additional elements for themes"
 id = "steam-theme-essentials"
 name = "Theme Essentials"
-version = "1.30.0"
+version = "1.31.0"
 
 [assets]
 resources = [ "locales" ]

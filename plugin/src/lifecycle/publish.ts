@@ -20,14 +20,11 @@ function runGhCli(...args: readonly string[]) {
 function runGitAsMe(login: string, args: readonly string[]) {
 	return run("git", [
 		"-c",
-		"credential.helper",
-		"!/usr/bin/gh auth git-credential",
+		"credential.helper=!gh auth git-credential",
 		"-c",
-		"user.name",
-		login,
+		`user.name=${login}`,
 		"-c",
-		"user.email",
-		`${login}@users.noreply.github.com`,
+		`user.email=${login}@users.noreply.github.com`,
 		...args,
 	]);
 }
